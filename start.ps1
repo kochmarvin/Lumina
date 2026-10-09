@@ -18,7 +18,7 @@ function Write-Fail([string]$Message) {
 function Show-Banner {
   Write-Host ""
   Write-Host "============================================================" -ForegroundColor Cyan
-  Write-Host "  Lokaler LLM Chat ist bereit" -ForegroundColor Cyan
+  Write-Host "  Lumina ist bereit" -ForegroundColor Cyan
   Write-Host ""
   Write-Host "  Oeffne im Browser:" -ForegroundColor Cyan
   Write-Host ("  " + $AppUrl) -ForegroundColor Green
@@ -155,7 +155,7 @@ function Install-NpmDepsIfNeeded {
 }
 
 Write-Host ""
-Write-Host "Lokaler LLM Chat - Start" -ForegroundColor Cyan
+Write-Host "Lumina - Start" -ForegroundColor Cyan
 Write-Host ""
 
 Assert-NodeInstalled

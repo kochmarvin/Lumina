@@ -2,6 +2,14 @@ export type UiMessage = {
   id: string
   role: "user" | "assistant"
   content: string
+  thinking?: string
+  mode?: "paraphrase" | "pdf" | "search"
+}
+
+export type ChatPdfMeta = {
+  id: string
+  name: string
+  pageCount: number
 }
 
 export type ChatThread = {
@@ -10,6 +18,7 @@ export type ChatThread = {
   createdAt: number
   updatedAt: number
   messages: UiMessage[]
+  pdf?: ChatPdfMeta
 }
 
 export type ChatStore = {
@@ -67,6 +76,15 @@ export function loadChatStore(): ChatStore {
         createdAt: chat.createdAt || Date.now(),
         updatedAt: chat.updatedAt || chat.createdAt || Date.now(),
         messages: Array.isArray(chat.messages) ? chat.messages : [],
+        ...(chat.pdf?.id && chat.pdf.name && chat.pdf.pageCount
+          ? {
+              pdf: {
+                id: chat.pdf.id,
+                name: chat.pdf.name,
+                pageCount: chat.pdf.pageCount,
+              },
+            }
+          : {}),
       }))
       .sort((a, b) => b.updatedAt - a.updatedAt)
 

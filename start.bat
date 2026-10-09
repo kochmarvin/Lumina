@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 echo.
-echo Lokaler LLM Chat - Start
+echo Lumina - Start
 echo.
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0start.ps1"

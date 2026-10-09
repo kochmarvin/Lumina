@@ -1,21 +1,87 @@
-# React + TypeScript + Vite + shadcn/ui
+<p align="center">
+  <img src="docs/lumina.png" alt="Lumina" width="280" />
+</p>
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+<h1 align="center">Lumina</h1>
 
-## Adding components
+<p align="center">
+  <strong>Lokale AI. Schnell. Privat.</strong><br />
+  Chat-UI für Ollama mit Qwen3 — Streaming, PDF-Fragen, Paraphrasieren und Web-Suche.
+</p>
 
-To add components to your app, run the following command:
+---
+
+## Voraussetzungen
+
+- [Node.js](https://nodejs.org/) 20+
+- [Ollama](https://ollama.com/download) (wird von den Start-Skripten bei Bedarf mitinstalliert)
+
+## Installation
 
 ```bash
-npx shadcn@latest add button
+git clone <repo-url> local-llm
+cd local-llm
+npm install
 ```
 
-This will place the ui components in the `src/components` directory.
+## Starten
 
-## Using components
+### Windows
 
-To use the components in your app, import them as follows:
+Doppelklick auf `start.bat`, oder:
 
-```tsx
-import { Button } from "@/components/ui/button"
+```powershell
+.\start.bat
+# alternativ:
+npm run start:win
 ```
+
+### macOS / Linux
+
+```bash
+chmod +x start.sh
+./start.sh
+# alternativ:
+npm run start:mac
+```
+
+Die Skripte prüfen Ollama, laden bei Bedarf `qwen3:14b` und starten den Dev-Server unter:
+
+**http://localhost:5173**
+
+Stoppen mit `Ctrl+C`.
+
+### Nur Frontend (Ollama läuft schon)
+
+```bash
+npm run dev
+```
+
+## Features
+
+- **Chat** mit Streaming gegen lokale Qwen3-Modelle über Ollama
+- **Denkmodus** (Aus / Kurz / Mittel / Lang)
+- **Paraphrasieren** — Text umschreiben, Inhalt bleibt
+- **PDF** — Datei ablegen, Fragen stellen, Seiten-Zitate
+- **Web-Suche** — DuckDuckGo-Treffer als Kontext für Antworten
+- **Einstellungen** — Ollama-Status, Modelle downloaden / starten / stoppen / aktiv setzen
+- **Mehrere Chats** — lokal im Browser gespeichert
+
+## Modelle wählen
+
+In der App unter **Einstellungen** Qwen3-Varianten (0.6B–32B) herunterladen und mit **Für Chat nutzen** aktivieren.
+
+Standard beim ersten Start: `qwen3:14b`.
+
+## Projektstruktur (kurz)
+
+| Pfad | Inhalt |
+|------|--------|
+| `src/components/` | Chat, Settings, PDF-UI |
+| `src/lib/` | Ollama-Client, PDF, Suche, Prompts |
+| `vite-plugin-web-search.ts` | DuckDuckGo-Suche im Dev-Server |
+| `start.bat` / `start.ps1` / `start.sh` | One-Click-Start |
+
+## Lizenz
+
+Privat / lokal nutzbar — siehe Repository-Einstellungen.

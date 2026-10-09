@@ -1,8 +1,13 @@
-import { MessageSquarePlusIcon, Trash2Icon } from "lucide-react"
+import {
+  MessageSquarePlusIcon,
+  SettingsIcon,
+  Trash2Icon,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
 import type { ChatThread } from "@/lib/chats"
+import { cn } from "@/lib/utils"
 
 type ChatSidebarProps = {
   chats: ChatThread[]
@@ -10,6 +15,7 @@ type ChatSidebarProps = {
   onNewChat: () => void
   onSelectChat: (chatId: string) => void
   onDeleteChat: (chatId: string) => void
+  onOpenSettings?: () => void
 }
 
 function formatTime(timestamp: number) {
@@ -27,13 +33,20 @@ export function ChatSidebar({
   onNewChat,
   onSelectChat,
   onDeleteChat,
+  onOpenSettings,
 }: ChatSidebarProps) {
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r bg-muted/20">
-      <div className="border-b p-3">
+    <aside className="flex h-full w-72 shrink-0 flex-col border-r bg-muted/30">
+      <div className="space-y-3 border-b px-3 py-4">
+        <div>
+          <p className="text-base font-semibold tracking-tight text-violet-700 dark:text-violet-300">
+            {APP_NAME}
+          </p>
+          <p className="text-xs text-muted-foreground">{APP_TAGLINE}</p>
+        </div>
         <Button
           type="button"
-          className="w-full justify-start gap-2"
+          className="w-full justify-center gap-2"
           onClick={onNewChat}
         >
           <MessageSquarePlusIcon />
@@ -41,44 +54,83 @@ export function ChatSidebar({
         </Button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
-        {chats.map((chat) => {
-          const active = chat.id === activeChatId
-          return (
-            <div
-              key={chat.id}
-              className={cn(
-                "group mb-1 flex items-start gap-1 rounded-lg px-2 py-2 transition-colors",
-                active ? "bg-muted" : "hover:bg-muted/60"
-              )}
-            >
-              <button
-                type="button"
-                className="min-w-0 flex-1 text-left"
-                onClick={() => onSelectChat(chat.id)}
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
+        {chats.length === 0 ? (
+          <p className="px-2 py-6 text-center text-xs text-muted-foreground">
+            Noch keine Chats
+          </p>
+        ) : (
+          chats.map((chat) => {
+            const active = chat.id === activeChatId
+            return (
+              <div
+                key={chat.id}
+                className={cn(
+                  "group flex h-14 items-center gap-1 rounded-xl px-2 transition-colors",
+                  active
+                    ? "bg-violet-100 text-violet-950 dark:bg-violet-950/50 dark:text-violet-50"
+                    : "hover:bg-muted/80"
+                )}
               >
-                <div className="truncate text-sm font-medium">{chat.title}</div>
-                <div className="mt-0.5 text-[11px] text-muted-foreground">
-                  {formatTime(chat.updatedAt)}
-                  {chat.messages.length > 0
-                    ? ` · ${chat.messages.length} Nachrichten`
-                    : ""}
-                </div>
-              </button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                className="mt-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
-                onClick={() => onDeleteChat(chat.id)}
-                aria-label="Chat loeschen"
-                title="Loeschen"
-              >
-                <Trash2Icon />
-              </Button>
-            </div>
-          )
-        })}
+                <button
+                  type="button"
+                  className="flex min-w-0 flex-1 flex-col justify-center text-left"
+                  onClick={() => onSelectChat(chat.id)}
+                >
+                  <span className="truncate text-sm font-medium">
+                    {chat.title}
+                  </span>
+                  <span
+                    className={cn(
+                      "truncate text-[11px]",
+                      active
+                        ? "text-violet-800/80 dark:text-violet-200/80"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {formatTime(chat.updatedAt)}
+                    {chat.pdf ? " · PDF" : ""}
+                    {chat.messages.length > 0
+                      ? ` · ${chat.messages.length}`
+                      : ""}
+                  </span>
+                </button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  className={cn(
+                    "shrink-0 text-destructive opacity-0 transition-opacity",
+                    "hover:bg-destructive/10 hover:text-destructive",
+                    "group-hover:opacity-100 focus-visible:opacity-100",
+                    active && "opacity-100"
+                  )}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onDeleteChat(chat.id)
+                  }}
+                  aria-label="Chat löschen"
+                  title="Löschen"
+                >
+                  <Trash2Icon />
+                </Button>
+              </div>
+            )
+          })
+        )}
+      </div>
+
+      <div className="border-t p-3">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full justify-start gap-2"
+          onClick={onOpenSettings}
+        >
+          <SettingsIcon />
+          Einstellungen
+        </Button>
       </div>
     </aside>
   )

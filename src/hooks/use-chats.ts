@@ -6,9 +6,11 @@ import {
   loadChatStore,
   saveChatStore,
   titleFromMessage,
+  type ChatPdfMeta,
   type ChatStore,
   type UiMessage,
 } from "@/lib/chats"
+import { deletePdfForChat } from "@/lib/pdf-store"
 
 export function useChats() {
   const [store, setStore] = useState<ChatStore>(() => loadChatStore())
@@ -68,6 +70,21 @@ export function useChats() {
     }))
   }
 
+  function setChatPdf(chatId: string, pdf: ChatPdfMeta | undefined) {
+    setStore((current) => ({
+      ...current,
+      chats: current.chats.map((chat) =>
+        chat.id === chatId
+          ? {
+              ...chat,
+              pdf,
+              updatedAt: Date.now(),
+            }
+          : chat
+      ),
+    }))
+  }
+
   function selectChat(chatId: string) {
     setStore((current) => {
       if (!current.chats.some((chat) => chat.id === chatId)) return current
@@ -85,6 +102,7 @@ export function useChats() {
   }
 
   function deleteChat(chatId: string) {
+    void deletePdfForChat(chatId)
     setStore((current) => {
       const remaining = current.chats.filter((chat) => chat.id !== chatId)
       if (remaining.length === 0) {
@@ -107,6 +125,7 @@ export function useChats() {
     activeChatId: store.activeChatId,
     messages: activeChat?.messages ?? [],
     setChatMessages,
+    setChatPdf,
     selectChat,
     newChat,
     deleteChat,

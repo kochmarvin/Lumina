@@ -1,4 +1,10 @@
-export const OLLAMA_MODEL = "qwen3:14b"
+import { loadActiveModel } from "@/lib/active-model"
+import { toOllamaThinkConfig, type ThinkLevel } from "@/lib/thinking"
+
+/** @deprecated use loadActiveModel() — kept for quick imports in UI labels */
+export function getActiveOllamaModel() {
+  return loadActiveModel()
+}
 
 export type ChatRole = "user" | "assistant" | "system"
 
@@ -11,26 +17,40 @@ type OllamaStreamChunk = {
   message?: {
     role?: string
     content?: string
+    thinking?: string
   }
   done?: boolean
   error?: string
 }
 
+export type StreamChatHandlers = {
+  onContent?: (text: string) => void
+  onThinking?: (text: string) => void
+}
+
 export async function streamChat(
   messages: ChatMessage[],
-  onDelta: (text: string) => void,
-  signal?: AbortSignal
+  handlers: StreamChatHandlers,
+  options?: {
+    signal?: AbortSignal
+    thinkLevel?: ThinkLevel
+  }
 ): Promise<void> {
+  const thinkLevel = options?.thinkLevel ?? "off"
+  const thinkConfig = toOllamaThinkConfig(thinkLevel)
+  const signal = options?.signal
+
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: OLLAMA_MODEL,
+      model: loadActiveModel(),
       messages,
       stream: true,
-      think: false,
+      think: thinkConfig.think,
+      ...(thinkConfig.options ? { options: thinkConfig.options } : {}),
     }),
     signal,
   })
@@ -51,51 +71,60 @@ export async function streamChat(
   const decoder = new TextDecoder()
   let buffer = ""
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+  const onAbort = () => {
+    void reader.cancel().catch(() => undefined)
+  }
+  signal?.addEventListener("abort", onAbort, { once: true })
 
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split("\n")
-    buffer = lines.pop() ?? ""
-
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (!trimmed) continue
-
-      let chunk: OllamaStreamChunk
-      try {
-        chunk = JSON.parse(trimmed) as OllamaStreamChunk
-      } catch {
-        continue
+  try {
+    while (true) {
+      if (signal?.aborted) {
+        throw new DOMException("Aborted", "AbortError")
       }
 
-      if (chunk.error) {
-        throw new Error(chunk.error)
-      }
+      const { done, value } = await reader.read()
+      if (done) break
 
-      const content = chunk.message?.content
-      if (content) {
-        onDelta(content)
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split("\n")
+      buffer = lines.pop() ?? ""
+
+      for (const line of lines) {
+        applyChunk(line, handlers)
       }
     }
+
+    const leftover = buffer.trim()
+    if (leftover) {
+      applyChunk(leftover, handlers)
+    }
+  } finally {
+    signal?.removeEventListener("abort", onAbort)
+  }
+}
+
+function applyChunk(line: string, handlers: StreamChatHandlers) {
+  const trimmed = line.trim()
+  if (!trimmed) return
+
+  let chunk: OllamaStreamChunk
+  try {
+    chunk = JSON.parse(trimmed) as OllamaStreamChunk
+  } catch {
+    return
   }
 
-  const leftover = buffer.trim()
-  if (leftover) {
-    try {
-      const chunk = JSON.parse(leftover) as OllamaStreamChunk
-      if (chunk.error) {
-        throw new Error(chunk.error)
-      }
-      const content = chunk.message?.content
-      if (content) {
-        onDelta(content)
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message !== leftover) {
-        throw error
-      }
-    }
+  if (chunk.error) {
+    throw new Error(chunk.error)
+  }
+
+  const thinking = chunk.message?.thinking
+  if (thinking) {
+    handlers.onThinking?.(thinking)
+  }
+
+  const content = chunk.message?.content
+  if (content) {
+    handlers.onContent?.(content)
   }
 }

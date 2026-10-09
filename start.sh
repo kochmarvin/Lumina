@@ -25,7 +25,7 @@ print_banner() {
 
 ${BOLD}${CYAN}╔══════════════════════════════════════════════════════════╗
 ║                                                          ║
-║   Lokaler LLM Chat ist bereit                            ║
+║   Lumina ist bereit                                      ║
 ║                                                          ║
 ║   Öffne im Browser:                                      ║
 ║   ${GREEN}${APP_URL}${CYAN}                                   ║
@@ -129,7 +129,7 @@ ensure_deps() {
 }
 
 main() {
-  printf "\n%s%sLokaler LLM Chat – Start%s\n\n" "$BOLD" "$CYAN" "$RESET"
+  printf "\n%s%sLumina - Start%s\n\n" "$BOLD" "$CYAN" "$RESET"
 
   ensure_node
 
